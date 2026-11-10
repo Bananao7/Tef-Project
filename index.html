@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Versos para Estefany</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap">
+<style>
+/* Concepto: un libro que se abre en tres tiempos — portada a oscuras, estantería de poemas, hoja de lectura.
+   Negro y vino como ground; el oro aparece solo en filos, etiquetas y el contador. */
+:root {
+  --noche: #0a0508;
+  --tinta: #150810;
+  --vino: #3b0b19;
+  --borgona: #6e1730;
+  --rosa: #f1d3da;
+  --rosa-suave: #c79aa6;
+  --oro: #cba869;
+  --oro-tenue: rgba(203, 168, 105, .28);
+  --oro-fino: rgba(203, 168, 105, .14);
+  --alerta: #e8909f;
+  --f-nombre: 'Pinyon Script', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --f-texto: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --f-etiqueta: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--noche); }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+body {
+  margin: 0;
+  background: var(--noche);
+  color: var(--rosa);
+  font-family: var(--f-texto);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }
+
+#fondo {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 38%, rgba(110, 23, 48, .55), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 10% 100%, rgba(59, 11, 25, .8), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 95% 0%, rgba(59, 11, 25, .55), transparent 70%),
+    var(--noche);
+}
+#particulas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+#app { position: relative; z-index: 2; }
+
+.pantalla { transition: opacity .38s ease, transform .38s ease; padding-block: clamp(1.4rem, 4vw, 2.6rem); }
+.pantalla.saliendo { opacity: 0; transform: translateY(-6px); }
+.pantalla.entrando { opacity: 0; transform: translateY(10px); }
+.contenedor { max-width: 1040px; margin-inline: auto; }
+
+.etiqueta {
+  font-family: var(--f-etiqueta); font-weight: 400; font-size: .7rem;
+  letter-spacing: .26em; text-transform: uppercase; color: var(--oro);
+}
+.orn { color: var(--oro); display: flex; justify-content: center; opacity: .85; }
+.orn svg { width: min(240px, 60vw); height: auto; }
+
+/* Botones */
+.btn {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-family: var(--f-etiqueta); font-weight: 400; font-size: .72rem;
+  letter-spacing: .18em; text-transform: uppercase;
+  padding: .75rem 1.15rem; border: 1px solid var(--oro-tenue); border-radius: 2px;
+  background: rgba(20, 8, 16, .55); color: var(--rosa);
+  transition: border-color .25s, background .25s, color .25s, box-shadow .25s;
+}
+.btn:hover { border-color: var(--oro); background: rgba(59, 11, 25, .7); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-oro { background: linear-gradient(135deg, var(--borgona), #4a0f20); border-color: var(--oro); }
+.btn-oro:hover { box-shadow: 0 0 26px rgba(203, 168, 105, .22); background: linear-gradient(135deg, #82193a, #5a1226); }
+.btn-peligro { color: var(--alerta); border-color: rgba(232, 144, 159, .4); }
+.btn-peligro:hover { border-color: var(--alerta); background: rgba(110, 23, 48, .45); }
+.btn-chico { padding: .5rem .8rem; font-size: .66rem; letter-spacing: .14em; }
+.btn svg, .enlace svg { flex: none; }
+.enlace {
+  display: inline-flex; align-items: center; gap: .5rem; background: none; border: 0; padding: .4rem 0;
+  font-family: var(--f-etiqueta); font-size: .7rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--rosa-suave); transition: color .2s;
+}
+.enlace:hover { color: var(--oro); }
+
+/* Portada */
+#v-portada { position: relative; padding-block: 0; }
+.portada {
+  min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding-block: 3rem 4rem;
+}
+.portada-etiqueta { margin: 0 0 .4rem; letter-spacing: .42em; font-weight: 300; animation: aparece 1.2s .15s both; }
+.portada-nombre {
+  margin: 0; padding: .06em .18em; font-family: var(--f-nombre); font-weight: 400;
+  font-size: clamp(4.6rem, 19vw, 10.5rem); line-height: 1.08;
+  background: linear-gradient(100deg, #f8e2e7 0%, #f1d3da 38%, #dcbc80 62%, #f1d3da 88%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: blur(0) drop-shadow(0 0 28px rgba(150, 30, 60, .55));
+  animation: nombre 1.8s .3s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes nombre {
+  from { opacity: 0; transform: scale(.97); filter: blur(10px) drop-shadow(0 0 0 rgba(150, 30, 60, 0)); }
+  to { opacity: 1; transform: none; filter: blur(0) drop-shadow(0 0 28px rgba(150, 30, 60, .55)); }
+}
+@keyframes aparece { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.portada .orn { margin-top: .2rem; animation: aparece 1.2s 1.1s both; }
+.portada-frase {
+  margin: 1.2rem 0 0; max-width: 24ch; font-style: italic; font-size: clamp(1.25rem, 4vw, 1.65rem);
+  line-height: 1.4; color: var(--rosa); text-wrap: balance; animation: aparece 1.2s 1.35s both;
+}
+.btn-portada {
+  margin-top: 2.4rem; font-family: var(--f-etiqueta); font-weight: 400; font-size: .76rem;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--rosa);
+  background: rgba(59, 11, 25, .35); border: 1px solid var(--oro); border-radius: 999px;
+  padding: 1rem 2.2rem; transition: background .3s, box-shadow .3s;
+  animation: aparece 1.1s 1.7s both;
+}
+.btn-portada:hover { background: var(--borgona); box-shadow: 0 0 34px rgba(203, 168, 105, .25); }
+.portada-cuenta { margin: 1.4rem 0 0; min-height: 1.2em; animation: aparece 1.2s 2s both; color: var(--rosa-suave); }
+.candado {
+  position: absolute; right: 0; bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: none; border: 0; padding: .6rem; color: var(--rosa-suave); opacity: .35; transition: opacity .25s, color .25s;
+}
+.candado:hover { opacity: 1; color: var(--oro); }
+
+/* Biblioteca */
+.cabecera { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .3rem; margin-block: .4rem 2.4rem; }
+.barra { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.titulo-script { font-family: var(--f-nombre); font-weight: 400; font-size: clamp(3rem, 10vw, 5rem); line-height: 1.15; margin: .5rem 0 0; color: var(--rosa); }
+.subtitulo { margin: 0; font-style: italic; color: var(--rosa-suave); text-wrap: balance; }
+.cuenta { display: flex; align-items: baseline; gap: .6rem; margin-top: 1.1rem; }
+.cuenta-num { font-size: 2.3rem; line-height: 1; color: var(--oro); font-variant-numeric: tabular-nums; min-width: .6em; text-align: right; }
+.cuenta-num.pop { animation: pop .6s ease; }
+@keyframes pop { 0% { transform: scale(1.35); opacity: .4; } 100% { transform: none; opacity: 1; } }
+.lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 1.4rem; }
+.tarjeta {
+  display: flex; flex-direction: column; text-align: left; padding: 0; min-width: 0;
+  background: linear-gradient(160deg, rgba(59, 11, 25, .6), rgba(21, 8, 16, .85));
+  border: 1px solid var(--oro-tenue); border-radius: 3px; overflow: hidden;
+  transition: transform .35s ease, border-color .3s, box-shadow .35s;
+}
+.tarjeta.entra { animation: aparece .8s calc(var(--i, 0) * 80ms) both; }
+.tarjeta:hover { transform: translateY(-4px); border-color: var(--oro); box-shadow: 0 18px 44px -16px rgba(130, 25, 58, .8); }
+.t-img { aspect-ratio: 16 / 10; overflow: hidden; border-bottom: 1px solid var(--oro-fino); }
+.t-img img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.85) brightness(.82); transition: transform .8s ease, filter .5s; }
+.tarjeta:hover .t-img img { transform: scale(1.04); filter: saturate(1) brightness(.95); }
+.t-cuerpo { display: flex; flex-direction: column; gap: .55rem; padding: 1.25rem 1.3rem 1.3rem; flex: 1; min-width: 0; }
+.t-titulo { margin: 0; font-style: italic; font-weight: 400; font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; text-wrap: balance; }
+.t-frag { margin: 0; color: var(--rosa-suave); font-size: 1.04rem; line-height: 1.55; overflow-wrap: anywhere; }
+.t-leer { margin-top: auto; padding-top: .6rem; color: var(--oro); display: flex; align-items: center; gap: .5rem; }
+.aviso { grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--rosa-suave); font-style: italic; }
+.aviso .orn { margin-bottom: 1rem; }
+.pie { display: flex; justify-content: center; margin-top: 3.2rem; }
+
+/* Lectura */
+.pagina {
+  position: relative; max-width: 700px; margin: 1.4rem auto 0;
+  padding: clamp(1.8rem, 6vw, 3.6rem) clamp(1.3rem, 6vw, 3.8rem) clamp(2rem, 6vw, 3.4rem);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0) 34px),
+    linear-gradient(180deg, #1a0a11, #12060b);
+  border: 1px solid var(--oro-tenue); border-radius: 2px;
+  box-shadow: 0 34px 80px -34px #000, inset 0 0 70px rgba(110, 23, 48, .16);
+}
+.pagina.anim { animation: pasar .9s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes pasar { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.p-img { margin: 0 0 1.8rem; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--oro-fino); position: relative; }
+.p-img img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9) brightness(.85); }
+.p-img::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 60px rgba(10, 5, 8, .75); }
+.p-fecha { text-align: center; margin: 0 0 .9rem; }
+.p-titulo { margin: 0; text-align: center; font-style: italic; font-weight: 400; font-size: clamp(2.1rem, 7vw, 3.2rem); line-height: 1.12; overflow-wrap: anywhere; text-wrap: balance; }
+.pagina .orn { margin-block: 1.3rem; }
+.p-dedic { text-align: center; margin: 0 auto 1.8rem; max-width: 34ch; }
+.p-dedic .etiqueta { display: block; margin-bottom: .35rem; font-size: .62rem; }
+.p-dedic p { margin: 0; font-style: italic; color: var(--rosa-suave); overflow-wrap: anywhere; }
+.versos {
+  white-space: pre-wrap; overflow-wrap: anywhere; max-width: 34em; margin: 0 auto;
+  font-size: clamp(1.2rem, 3.3vw, 1.4rem); line-height: 1.95; color: #f6e4e8;
+}
+.nav-poema { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 2.4rem auto 0; max-width: 700px; }
+.nav-poema button { min-width: 0; text-align: left; justify-content: flex-start; flex-direction: column; align-items: flex-start; gap: .25rem; padding: .9rem 1rem; }
+.nav-poema button:last-child { text-align: right; align-items: flex-end; grid-column: 2; }
+.nav-poema .nt { font-family: var(--f-texto); font-style: italic; letter-spacing: 0; text-transform: none; font-size: 1.1rem; color: var(--rosa); overflow-wrap: anywhere; }
+
+/* Rincón de escritura */
+.rincon { max-width: 860px; margin-inline: auto; }
+.tarjeta-acceso {
+  max-width: 440px; margin: 2rem auto 0; padding: 2rem 1.6rem; text-align: center;
+  background: linear-gradient(160deg, rgba(59, 11, 25, .6), rgba(21, 8, 16, .9));
+  border: 1px solid var(--oro-tenue); border-radius: 3px;
+}
+.tarjeta-acceso h2 { margin: 0 0 .4rem; font-weight: 400; font-style: italic; font-size: 1.7rem; }
+.tarjeta-acceso p { margin: 0 0 1.2rem; color: var(--rosa-suave); }
+.campo { display: flex; flex-direction: column; gap: .45rem; text-align: left; margin-bottom: 1.2rem; min-width: 0; }
+.campo label, .campo .lbl { font-family: var(--f-etiqueta); font-size: .66rem; letter-spacing: .22em; text-transform: uppercase; color: var(--oro); }
+.campo small { color: var(--rosa-suave); font-size: .95rem; font-style: italic; }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], textarea {
+  width: 100%; background: rgba(255, 255, 255, .04); border: 1px solid var(--oro-tenue); border-radius: 3px;
+  padding: .75rem .9rem; color: var(--rosa); transition: border-color .2s, background .2s;
+}
+input:focus, textarea:focus { outline: none; border-color: var(--oro); background: rgba(255, 255, 255, .06); }
+textarea { min-height: 300px; resize: vertical; line-height: 1.7; font-size: 1.2rem; }
+.msg { min-height: 1.4em; margin: 0 0 .8rem; color: var(--alerta); font-style: italic; text-align: left; }
+.rincon-cab { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+.rincon-cab .titulo-script { margin: 0; text-align: left; font-size: clamp(2.6rem, 8vw, 4rem); }
+.acciones { display: flex; flex-wrap: wrap; gap: .6rem; }
+.resumen { margin: .2rem 0 0; color: var(--rosa-suave); font-style: italic; }
+.filas { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--oro-fino); }
+.fila { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 1rem .2rem; border-bottom: 1px solid var(--oro-fino); }
+.fila-info { min-width: 0; flex: 1 1 220px; }
+.fila-info h3 { margin: 0; font-weight: 400; font-style: italic; font-size: 1.4rem; line-height: 1.2; overflow-wrap: anywhere; }
+.meta { margin: .2rem 0 0; color: var(--rosa-suave); font-size: .98rem; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.chip { font-family: var(--f-etiqueta); font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; padding: .2rem .55rem; border-radius: 999px; border: 1px solid var(--oro-tenue); }
+.chip-pub { color: var(--oro); }
+.chip-ocu { color: var(--rosa-suave); border-style: dashed; }
+.confirma { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; color: var(--alerta); font-style: italic; }
+.panel { background: rgba(21, 8, 16, .7); border: 1px solid var(--oro-tenue); border-radius: 3px; padding: clamp(1.1rem, 4vw, 1.8rem); margin-bottom: 1.6rem; }
+.panel h2 { margin: 0 0 1.2rem; font-weight: 400; font-style: italic; font-size: 1.7rem; }
+.fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.prev { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.prev img { width: 150px; max-width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border: 1px solid var(--oro-tenue); }
+.pub-check { display: flex; align-items: center; gap: .7rem; margin: .4rem 0 1.4rem; cursor: pointer; }
+.pub-check input { width: 1.15rem; height: 1.15rem; accent-color: var(--oro); }
+.pub-check span { font-size: 1.05rem; }
+input[type="file"] { color: var(--rosa-suave); font-size: .95rem; max-width: 100%; }
+
+#toast {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none; max-width: min(92vw, 420px);
+  background: #1d0a12; border: 1px solid var(--oro); color: var(--rosa); padding: .7rem 1.2rem; border-radius: 3px;
+  font-style: italic; text-align: center; transition: opacity .3s, transform .3s;
+}
+#toast.ver { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 560px) {
+  .fila-2 { grid-template-columns: 1fr; }
+  .nav-poema { grid-template-columns: 1fr; }
+  .nav-poema button:last-child { grid-column: 1; }
+  .rincon-cab { align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="fondo" aria-hidden="true"></div>
+<canvas id="particulas" aria-hidden="true"></canvas>
+
+<main id="app">
+
+  <section id="v-portada" class="pantalla activa">
+    <div class="portada">
+      <p class="portada-etiqueta etiqueta">Poemas escritos para</p>
+      <h1 class="portada-nombre">Estefany</h1>
+      <div class="orn" aria-hidden="true" id="orn-portada"></div>
+      <p class="portada-frase">Hay palabras que merecen un lugar especial</p>
+      <button type="button" class="btn-portada" id="btn-descubrir">Descubrir nuestros versos</button>
+      <p class="portada-cuenta etiqueta" id="portada-cuenta"></p>
+    </div>
+    <button type="button" class="candado" id="btn-rincon-portada" aria-label="Mi rincón de escritura" title="Mi rincón de escritura"></button>
+  </section>
+
+  <section id="v-biblioteca" class="pantalla" hidden>
+    <div class="contenedor">
+      <div class="barra">
+        <button type="button" class="enlace" id="btn-a-portada"></button>
+      </div>
+      <header class="cabecera">
+        <h2 class="titulo-script">Nuestros versos</h2>
+        <p class="subtitulo">Cada poema tiene su fecha y su historia.</p>
+        <div class="cuenta">
+          <span class="cuenta-num" id="cuenta-num">·</span>
+          <span class="etiqueta" id="cuenta-txt">poemas publicados</span>
+        </div>
+      </header>
+      <div class="lista" id="lista"></div>
+      <div class="pie">
+        <button type="button" class="enlace" id="btn-rincon-lib"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-lectura" class="pantalla" hidden>
+    <div class="contenedor">
+      <div class="barra">
+        <button type="button" class="enlace" id="btn-lect-cat"></button>
+        <button type="button" class="enlace" id="btn-lect-portada">Portada</button>
+      </div>
+      <div id="lectura-cont"></div>
+    </div>
+  </section>
+
+  <section id="v-rincon" class="pantalla" hidden>
+    <div class="rincon">
+      <div class="barra">
+        <button type="button" class="enlace" id="btn-rin-cat"></button>
+      </div>
+      <div id="rincon-cont"></div>
+    </div>
+  </section>
+
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p style="position:relative;z-index:3;text-align:center;padding:2rem">Esta página necesita JavaScript para abrirse.</p></noscript>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- utilidades ---------- */
+  const $ = (s, r = document) => r.querySelector(s);
+  const h = (tag, props = {}, ...kids) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v == null || v === false) continue;
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k === 'html') e.innerHTML = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of kids.flat()) {
+      if (c == null || c === false) continue;
+      e.append(c.nodeType ? c : document.createTextNode(c));
+    }
+    return e;
+  };
+  const svg = (inner, w = 16) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const IC = {
+    atras: svg('<path d="M19 12H5M11 6l-6 6 6 6"/>'),
+    adelante: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+    pluma: svg('<path d="M20 4c-6 0-11 4-12 10l-1 5 5-1c6-1 10-6 10-12z"/><path d="M4 20l8-8"/>'),
+    candado: svg('<rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 018 0v3"/>', 18),
+    candadoChico: svg('<rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 018 0v3"/>', 14),
+  };
+  const ORN = '<svg viewBox="0 0 240 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M4 12h92" opacity=".7"/><path d="M144 12h92" opacity=".7"/><path d="M120 4l7 8-7 8-7-8z"/><circle cx="104" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="136" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>';
+  const ornamento = () => h('div', { class: 'orn', html: ORN, 'aria-hidden': 'true' });
+
+  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmtLarga = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric' });
+  const fmtCorta = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
+  const parseFecha = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+  const fechaLarga = (s) => { const d = parseFecha(s); return d ? fmtLarga.format(d) : ''; };
+  const fechaCorta = (s) => { const d = parseFecha(s); return d ? fmtCorta.format(d) : 'Sin fecha'; };
+  const hoy = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const orden = (a, b) => (b.fecha || '').localeCompare(a.fecha || '') || (b.creado || 0) - (a.creado || 0);
+  const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+  const plural = (n) => (n === 1 ? 'poema publicado' : 'poemas publicados');
+  const uuid = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+  function fragmento(texto) {
+    const lineas = String(texto || '').split(/\n+/).map((l) => l.trim()).filter(Boolean).slice(0, 2);
+    let f = lineas.join(' / ');
+    if (f.length > 120) f = f.slice(0, 117).trimEnd() + '…';
+    return f;
+  }
+  let toastT = 0;
+  function toast(msg) {
+    const t = $('#toast'); t.textContent = msg; t.classList.add('ver');
+    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('ver'), 2800);
+  }
+
+  /* ---------- estado y conexión ---------- */
+  const CFG = window.CONFIG || {};
+  const S = {
+    sb: null, sinConfig: false, sesion: null,
+    publicados: [], cargadoPub: false, errorPub: false, ultimaCarga: 0,
+    todos: [], cargadoTodos: false,
+    ruta: null, poemaId: null, ultimoLeido: null, animLista: false,
+    acceso: 'cargando', editando: null, form: null, confirmar: null, cambiandoClave: false, guardando: false,
+  };
+  function crearCliente() {
+    const u = CFG.SUPABASE_URL, k = CFG.SUPABASE_ANON_KEY;
+    if (!window.supabase || !u || !k || /TU[-_]/.test(u + k)) return null;
+    try { return window.supabase.createClient(u, k); } catch (_) { return null; }
+  }
+  const norm = (r) => ({
+    id: r.id, titulo: r.titulo || '', contenido: r.contenido || '', dedicatoria: r.dedicatoria || '',
+    fecha: r.fecha || '', portada: r.portada || '', creado: Date.parse(r.creado) || 0,
+    estado: r.publicado ? 'publicado' : 'oculto',
+  });
+  const urlPortada = (ruta) => S.sb.storage.from('portadas').getPublicUrl(ruta).data.publicUrl;
+
+  async function cargarPublicados() {
+    if (!S.sb) return;
+    try {
+      const { data, error } = await S.sb.from('poemas').select('*').eq('publicado', true);
+      if (error) throw error;
+      S.publicados = data.map(norm).sort(orden); S.cargadoPub = true; S.errorPub = false; S.ultimaCarga = Date.now();
+    } catch (_) { S.errorPub = true; }
+    repintarDatos();
+  }
+  async function cargarTodos() {
+    if (!S.sb) return;
+    try {
+      const { data, error } = await S.sb.from('poemas').select('*');
+      if (error) throw error;
+      S.todos = data.map(norm).sort(orden);
+    } catch (_) { S.todos = []; }
+    S.cargadoTodos = true;
+    repintarDatos();
+  }
+  const refrescar = async () => { await cargarPublicados(); if (S.acceso === 'abierto') await cargarTodos(); };
+  function repintarDatos() {
+    pintarCuentas();
+    if (!S.ruta) return;
+    if (S.ruta.v === 'biblioteca') pintarBiblioteca();
+    else if (S.ruta.v === 'lectura') pintarLectura();
+    else if (S.ruta.v === 'rincon' && S.acceso === 'abierto') pintarRincon();
+  }
+
+  /* ---------- fondo: pétalos y estrellas ---------- */
+  const cv = $('#particulas'), cx = cv.getContext('2d');
+  let W = 0, H = 0, petalos = [], estrellas = [], nivel = 1, nivelObj = 1, raf = 0;
+  const COLORES = ['236,164,182', '214,120,146', '241,211,218'];
+  function nuevoPetalo(inicial) {
+    return { x: Math.random() * W, y: inicial ? Math.random() * H : -24, s: Math.random() * 6 + 6, rot: Math.random() * 6.28,
+      vr: (Math.random() - .5) * .012, vy: Math.random() * .25 + .16, ph: Math.random() * 6.28, sw: Math.random() * .35 + .15,
+      a: Math.random() * .22 + .16, c: COLORES[Math.floor(Math.random() * COLORES.length)] };
+  }
+  function medir() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const f = W < 600 ? .55 : 1;
+    petalos = Array.from({ length: Math.round(22 * f) }, () => nuevoPetalo(true));
+    estrellas = Array.from({ length: Math.round(80 * f) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + .3, f: Math.random() * 6.28, v: Math.random() * .8 + .3, oro: Math.random() < .22 }));
+    if (quieto) dibujar(0);
+  }
+  function dibujar(t) {
+    cx.clearRect(0, 0, W, H);
+    nivel += (nivelObj - nivel) * .04;
+    for (const e of estrellas) {
+      const a = (.18 + .55 * (.5 + .5 * Math.sin(t * .001 * e.v + e.f))) * (.55 + .45 * nivel);
+      if (e.oro) {
+        cx.strokeStyle = `rgba(203,168,105,${a})`; cx.lineWidth = .7;
+        cx.beginPath(); cx.moveTo(e.x - 2.2, e.y); cx.lineTo(e.x + 2.2, e.y); cx.moveTo(e.x, e.y - 2.2); cx.lineTo(e.x, e.y + 2.2); cx.stroke();
+      } else {
+        cx.fillStyle = `rgba(241,211,218,${a})`; cx.beginPath(); cx.arc(e.x, e.y, e.r, 0, 6.283); cx.fill();
+      }
+    }
+    for (const p of petalos) {
+      if (!quieto) {
+        p.y += p.vy; p.x += Math.sin(t * .0006 + p.ph) * p.sw; p.rot += p.vr;
+        if (p.y > H + 24) Object.assign(p, nuevoPetalo(false));
+      }
+      const s = p.s;
+      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.scale(1, .75 + .25 * Math.sin(t * .001 + p.ph));
+      cx.beginPath(); cx.moveTo(0, -s);
+      cx.bezierCurveTo(s * .9, -s * .5, s * .8, s * .6, 0, s);
+      cx.bezierCurveTo(-s * .8, s * .6, -s * .9, -s * .5, 0, -s);
+      cx.fillStyle = `rgba(${p.c},${p.a * nivel})`; cx.fill(); cx.restore();
+    }
+  }
+  function bucle(t) { dibujar(t); raf = requestAnimationFrame(bucle); }
+  function iniciarFondo() {
+    medir();
+    window.addEventListener('resize', medir);
+    if (quieto) return;
+    raf = requestAnimationFrame(bucle);
+    document.addEventListener('visibilitychange', () => {
+      cancelAnimationFrame(raf);
+      if (!document.hidden) raf = requestAnimationFrame(bucle);
+    });
+  }
+
+  /* ---------- navegación ---------- */
+  const NIVEL = { portada: 1, biblioteca: .5, lectura: .28, rincon: .3 };
+  function leerRuta(forzada) {
+    const x = (forzada != null ? forzada : (location.hash || '')).replace(/^#/, '');
+    if (x === 'biblioteca') return { v: 'biblioteca', k: x };
+    if (x === 'rincon') return { v: 'rincon', k: x };
+    if (/^poema-[A-Za-z0-9-]+$/.test(x)) return { v: 'lectura', id: x.slice(6), k: x };
+    return { v: 'portada', k: 'portada' };
+  }
+  function cambiarVista(id) {
+    const nueva = $('#v-' + id);
+    const actual = $('.pantalla.activa');
+    document.querySelectorAll('.pantalla').forEach((p) => { if (p !== nueva && p !== actual) { p.hidden = true; p.classList.remove('activa', 'saliendo', 'entrando'); } });
+    if (actual === nueva) return;
+    const mostrar = () => {
+      if (actual) { actual.hidden = true; actual.classList.remove('activa', 'saliendo'); }
+      nueva.hidden = false; nueva.classList.add('activa', 'entrando');
+      window.scrollTo(0, 0);
+      void nueva.offsetWidth;
+      requestAnimationFrame(() => nueva.classList.remove('entrando'));
+    };
+    if (actual && !quieto) { actual.classList.add('saliendo'); setTimeout(mostrar, 320); } else mostrar();
+  }
+  function aplicarRuta(forzada) {
+    const r = leerRuta(forzada);
+    if (S.ruta && S.ruta.k === r.k) return;
+    S.ruta = r;
+    nivelObj = NIVEL[r.v];
+    if (r.v === 'lectura') S.poemaId = r.id;
+    cambiarVista(r.v);
+    if ((r.v === 'biblioteca' || r.v === 'lectura') && S.sb && Date.now() - S.ultimaCarga > 20000) cargarPublicados();
+    if (r.v === 'lectura') { window.scrollTo(0, 0); pintarLectura(); }
+    else if (r.v === 'biblioteca') pintarBiblioteca();
+    else if (r.v === 'rincon') prepararRincon();
+  }
+  function ir(k) {
+    if ((location.hash || '') !== '#' + k) { try { location.hash = k; } catch (_) { /* sin efecto */ } }
+    aplicarRuta(k);
+  }
+
+  /* ---------- biblioteca ---------- */
+  function aviso(texto, conOrn) {
+    return h('div', { class: 'aviso' }, conOrn ? ornamento() : null, texto);
+  }
+  function tarjeta(p, i, animar) {
+    const hijos = [];
+    if (p.portada) {
+      hijos.push(h('div', { class: 't-img' }, h('img', { src: urlPortada(p.portada), alt: '', loading: 'lazy', onerror: (ev) => ev.target.parentNode.remove() })));
+    }
+    hijos.push(h('div', { class: 't-cuerpo' },
+      h('span', { class: 'etiqueta', text: fechaCorta(p.fecha) }),
+      h('h3', { class: 't-titulo', text: p.titulo || 'Sin título' }),
+      h('p', { class: 't-frag', text: fragmento(p.contenido) }),
+      h('span', { class: 't-leer etiqueta', html: 'Leer ' + IC.adelante })));
+    return h('button', { type: 'button', class: 'tarjeta' + (animar ? ' entra' : ''), style: `--i:${i}`, 'aria-label': 'Leer: ' + (p.titulo || 'Sin título'), onclick: () => ir('poema-' + p.id) }, hijos);
+  }
+  function pintarCuentas() {
+    const n = S.publicados.length;
+    const num = $('#cuenta-num');
+    const txt = S.cargadoPub ? String(n) : '·';
+    if (num.textContent !== txt) { num.textContent = txt; num.classList.remove('pop'); void num.offsetWidth; num.classList.add('pop'); }
+    $('#cuenta-txt').textContent = plural(n);
+    $('#portada-cuenta').textContent = S.cargadoPub && n > 0 ? `${n} ${plural(n)}` : '';
+  }
+  function pintarBiblioteca() {
+    pintarCuentas();
+    const g = $('#lista'); g.replaceChildren();
+    if (S.sinConfig) { g.append(aviso('Falta conectar la base de datos. Revisa el archivo config.js.', true)); return; }
+    if (S.errorPub && !S.cargadoPub) { g.append(aviso('No se pudieron abrir los poemas por ahora. Vuelve a intentarlo en un momento.', true)); return; }
+    if (!S.cargadoPub) { g.append(aviso('Abriendo el libro…', true)); return; }
+    if (!S.publicados.length) { g.append(aviso('Todavía no hay versos publicados. Pronto llegarán.', true)); return; }
+    const animar = !S.animLista;
+    S.publicados.forEach((p, i) => g.append(tarjeta(p, i, animar)));
+    S.animLista = true;
+  }
+
+  /* ---------- lectura ---------- */
+  function pintarLectura() {
+    const c = $('#lectura-cont'); c.replaceChildren();
+    const p = S.publicados.find((x) => x.id === S.poemaId);
+    if (!p) {
+      const cargando = !S.cargadoPub && !S.errorPub && S.sb;
+      c.append(h('div', { class: 'pagina' }, aviso(cargando ? 'Abriendo la página…' : 'Este poema no está disponible.', true)));
+      return;
+    }
+    const i = S.publicados.indexOf(p);
+    const anim = S.ultimoLeido !== p.id;
+    S.ultimoLeido = p.id;
+    const pagina = h('article', { class: 'pagina' + (anim ? ' anim' : '') });
+    if (p.portada) pagina.append(h('figure', { class: 'p-img', style: 'margin-inline:0' }, h('img', { src: urlPortada(p.portada), alt: '', onerror: (ev) => ev.target.parentNode.remove() })));
+    const f = fechaLarga(p.fecha);
+    if (f) pagina.append(h('p', { class: 'p-fecha etiqueta', text: 'Escrito el ' + f }));
+    pagina.append(h('h2', { class: 'p-titulo', text: p.titulo || 'Sin título' }), ornamento());
+    if (p.dedicatoria) pagina.append(h('div', { class: 'p-dedic' }, h('span', { class: 'etiqueta', text: 'Dedicatoria' }), h('p', { text: p.dedicatoria })));
+    pagina.append(h('div', { class: 'versos', text: p.contenido || '' }), h('div', { style: 'margin-top:2rem' }, ornamento()));
+    c.append(pagina);
+    const ant = S.publicados[i + 1], sig = S.publicados[i - 1];
+    if (ant || sig) {
+      const nav = h('nav', { class: 'nav-poema', 'aria-label': 'Otros poemas' });
+      if (ant) nav.append(h('button', { type: 'button', class: 'btn', onclick: () => ir('poema-' + ant.id) }, h('span', { class: 'etiqueta', html: IC.atras + ' Anterior' }), h('span', { class: 'nt', text: ant.titulo || 'Sin título' })));
+      else nav.append(h('span'));
+      if (sig) nav.append(h('button', { type: 'button', class: 'btn', onclick: () => ir('poema-' + sig.id) }, h('span', { class: 'etiqueta', html: 'Siguiente ' + IC.adelante }), h('span', { class: 'nt', text: sig.titulo || 'Sin título' })));
+      c.append(nav);
+    }
+  }
+
+  /* ---------- rincón de escritura: acceso ---------- */
+  async function prepararRincon() {
+    S.acceso = 'cargando'; S.editando = null; S.form = null; S.confirmar = null; S.cambiandoClave = false;
+    pintarRincon();
+    if (!S.sb) { S.acceso = 'sin-config'; pintarRincon(); return; }
+    try { const { data } = await S.sb.auth.getSession(); S.sesion = data && data.session; } catch (_) { S.sesion = null; }
+    if (!S.ruta || S.ruta.v !== 'rincon') return;
+    if (S.sesion) await abrirRincon();
+    else { S.acceso = 'entrar'; pintarRincon(); }
+  }
+  async function abrirRincon() {
+    S.acceso = 'abierto'; S.cargadoTodos = false;
+    pintarRincon();
+    await cargarTodos();
+  }
+  async function cerrarRincon() {
+    try { await S.sb.auth.signOut(); } catch (_) { /* da igual */ }
+    S.sesion = null; S.acceso = 'entrar'; S.editando = null; S.form = null; S.todos = [];
+    ir('biblioteca');
+  }
+  async function enviarAcceso(ev) {
+    ev.preventDefault();
+    const msg = $('#acceso-msg'); msg.textContent = '';
+    const email = $('#correo').value.trim(), clave = $('#clave').value;
+    if (!email || !clave) { msg.textContent = 'Escribe tu correo y tu contraseña.'; return; }
+    const btn = $('#btn-entrar'); btn.disabled = true;
+    try {
+      const { data, error } = await S.sb.auth.signInWithPassword({ email, password: clave });
+      if (error) { await esperar(500); msg.textContent = 'Correo o contraseña incorrectos.'; btn.disabled = false; return; }
+      S.sesion = data.session;
+      await abrirRincon();
+    } catch (_) { msg.textContent = 'No se pudo conectar. Inténtalo de nuevo.'; btn.disabled = false; }
+  }
+  async function enviarCambioClave(ev) {
+    ev.preventDefault();
+    const msg = $('#cc-msg'); msg.textContent = '';
+    const a = $('#cc-1').value;
+    if (a.length < 6) { msg.textContent = 'Usa al menos 6 caracteres.'; return; }
+    if (a !== $('#cc-2').value) { msg.textContent = 'Las dos contraseñas no coinciden.'; return; }
+    const { error } = await S.sb.auth.updateUser({ password: a });
+    if (error) { msg.textContent = 'No se pudo cambiar la contraseña. Entra de nuevo e inténtalo otra vez.'; return; }
+    S.cambiandoClave = false; pintarRincon(); toast('Contraseña actualizada');
+  }
+
+  /* ---------- rincón de escritura: poemas ---------- */
+  const errorDe = (e) => {
+    const t = String((e && (e.message || e.error_description)) || '');
+    if (e && (e.status === 401 || /jwt|token|expired/i.test(t))) return 'Tu sesión caducó. Cierra el rincón y entra de nuevo.';
+    if (e && e.sinPermiso) return 'Esta cuenta no tiene permiso para escribir aquí.';
+    if (/too large|payload|size/i.test(t)) return 'La imagen es demasiado grande.';
+    return 'No se pudo guardar. Inténtalo de nuevo.';
+  };
+  async function mover(p) {
+    const aPublicar = p.estado !== 'publicado';
+    const { data, error } = await S.sb.from('poemas').update({ publicado: aPublicar, actualizado: new Date().toISOString() }).eq('id', p.id).select('id');
+    if (error || !data || !data.length) { toast('No se pudo cambiar el estado'); return; }
+    toast(aPublicar ? 'Poema publicado' : 'Poema oculto del catálogo');
+    await refrescar();
+  }
+  async function eliminar(p) {
+    const { data, error } = await S.sb.from('poemas').delete().eq('id', p.id).select('id');
+    if (error || !data || !data.length) { toast('No se pudo eliminar'); return; }
+    if (p.portada) { try { await S.sb.storage.from('portadas').remove([p.portada]); } catch (_) { /* huérfano inofensivo */ } }
+    S.confirmar = null; toast('Poema eliminado');
+    await refrescar(); pintarRincon();
+  }
+  async function reducirImagen(archivo, max = 1400) {
+    const url = URL.createObjectURL(archivo);
+    try {
+      const img = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url; });
+      const esc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * esc)); c.height = Math.max(1, Math.round(img.naturalHeight * esc));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      return await new Promise((ok, ko) => c.toBlob((b) => (b ? ok(b) : ko(new Error('blob'))), 'image/jpeg', .86));
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  function abrirFormulario(p) {
+    S.editando = p ? { id: p.id, estado: p.estado } : { id: null, estado: 'publicado' };
+    S.form = { original: p ? p.portada || '' : '', quitar: false, archivo: null, datos: p || { titulo: '', contenido: '', dedicatoria: '', fecha: hoy(), portada: '' } };
+    S.confirmar = null; S.cambiandoClave = false;
+    pintarRincon(); window.scrollTo(0, 0);
+  }
+  function cerrarFormulario() { S.editando = null; S.form = null; pintarRincon(); }
+
+  let urlVista = '';
+  function actualizarPrev() {
+    const cont = $('#f-prev'); if (!cont) return;
+    cont.replaceChildren();
+    const f = S.form;
+    if (urlVista) { URL.revokeObjectURL(urlVista); urlVista = ''; }
+    let src = '';
+    if (f.archivo) { urlVista = URL.createObjectURL(f.archivo); src = urlVista; }
+    else if (!f.quitar && f.original) src = urlPortada(f.original);
+    if (!src) return;
+    cont.append(h('img', { src, alt: 'Portada del poema' }), h('button', { type: 'button', class: 'btn btn-chico', text: 'Quitar imagen', onclick: () => { f.archivo = null; f.quitar = true; $('#f-portada').value = ''; actualizarPrev(); } }));
+  }
+
+  async function guardar(ev) {
+    ev.preventDefault();
+    if (S.guardando) return;
+    const msg = $('#form-msg'); msg.textContent = '';
+    const titulo = $('#f-titulo').value.trim(), contenido = $('#f-contenido').value.replace(/\s+$/, '');
+    if (!titulo) { msg.textContent = 'Escribe el título del poema.'; $('#f-titulo').focus(); return; }
+    if (!contenido.trim()) { msg.textContent = 'El poema aún no tiene versos.'; $('#f-contenido').focus(); return; }
+    const btn = $('#btn-guardar');
+    S.guardando = true; btn.disabled = true; btn.textContent = 'Guardando…';
+    try {
+      const f = S.form;
+      let portada = f.original || null, viejo = null;
+      if (f.archivo) {
+        const blob = await reducirImagen(f.archivo);
+        const ruta = uuid() + '.jpg';
+        const { error } = await S.sb.storage.from('portadas').upload(ruta, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+        if (error) throw error;
+        portada = ruta; viejo = f.original;
+      } else if (f.quitar) { portada = null; viejo = f.original; }
+      const publicar = $('#f-publicar').checked;
+      const fila = { titulo, contenido, dedicatoria: $('#f-dedic').value.trim() || null, fecha: $('#f-fecha').value || hoy(), portada, publicado: publicar, actualizado: new Date().toISOString() };
+      const q = S.editando.id
+        ? S.sb.from('poemas').update(fila).eq('id', S.editando.id).select('id')
+        : S.sb.from('poemas').insert(fila).select('id');
+      const { data, error } = await q;
+      if (error) throw error;
+      if (!data || !data.length) throw { sinPermiso: true };
+      if (viejo && viejo !== portada) { try { await S.sb.storage.from('portadas').remove([viejo]); } catch (_) { /* huérfano inofensivo */ } }
+      toast(publicar ? 'Poema guardado y publicado' : 'Poema guardado como oculto');
+      S.guardando = false;
+      await refrescar();
+      cerrarFormulario();
+    } catch (e) {
+      S.guardando = false; btn.disabled = false; btn.textContent = 'Guardar poema';
+      msg.textContent = errorDe(e);
+    }
+  }
+
+  function construirFormulario() {
+    const d = S.form.datos, nuevo = !S.editando.id;
+    const campoPortada = h('div', { class: 'campo' }, h('span', { class: 'lbl', text: 'Imagen de portada (opcional)' }),
+      h('input', { type: 'file', id: 'f-portada', accept: 'image/png,image/jpeg,image/webp,image/gif', onchange: (ev) => { const a = ev.target.files && ev.target.files[0]; S.form.archivo = a || null; if (a) S.form.quitar = false; actualizarPrev(); } }),
+      h('div', { class: 'prev', id: 'f-prev' }));
+    const publicado = S.editando.estado === 'publicado';
+    return h('form', { id: 'form-poema', class: 'panel', novalidate: true, onsubmit: guardar },
+      h('h2', { text: nuevo ? 'Un poema nuevo' : 'Editar poema' }),
+      h('div', { class: 'campo' }, h('label', { for: 'f-titulo', text: 'Título' }), h('input', { type: 'text', id: 'f-titulo', maxlength: '120', value: d.titulo || '', autocomplete: 'off' })),
+      h('div', { class: 'campo' }, h('label', { for: 'f-contenido', text: 'Poema' }), h('textarea', { id: 'f-contenido', maxlength: '20000', placeholder: 'Escribe o pega aquí los versos. Los saltos de línea se respetan.' }), h('small', { text: 'Deja una línea en blanco entre estrofas.' })),
+      h('div', { class: 'fila-2' },
+        h('div', { class: 'campo' }, h('label', { for: 'f-dedic', text: 'Dedicatoria (opcional)' }), h('input', { type: 'text', id: 'f-dedic', maxlength: '200', value: d.dedicatoria || '', autocomplete: 'off' })),
+        h('div', { class: 'campo' }, h('label', { for: 'f-fecha', text: 'Fecha' }), h('input', { type: 'date', id: 'f-fecha', value: d.fecha || hoy() }))),
+      campoPortada,
+      h('label', { class: 'pub-check' }, h('input', Object.assign({ type: 'checkbox', id: 'f-publicar' }, (nuevo || publicado) ? { checked: true } : {})), h('span', { text: 'Publicar en el catálogo' })),
+      h('p', { class: 'msg', id: 'form-msg', role: 'alert' }),
+      h('div', { class: 'acciones' },
+        h('button', { type: 'submit', class: 'btn btn-oro', id: 'btn-guardar', text: 'Guardar poema' }),
+        h('button', { type: 'button', class: 'btn', text: 'Cancelar', onclick: cerrarFormulario })));
+  }
+
+  function filaPoema(p) {
+    const pub = p.estado === 'publicado';
+    const info = h('div', { class: 'fila-info' },
+      h('h3', { text: p.titulo || 'Sin título' }),
+      h('p', { class: 'meta' }, fechaCorta(p.fecha), h('span', { class: 'chip ' + (pub ? 'chip-pub' : 'chip-ocu'), text: pub ? 'Publicado' : 'Oculto' })));
+    let acciones;
+    if (S.confirmar === p.id) {
+      acciones = h('div', { class: 'confirma' }, '¿Eliminar para siempre?',
+        h('button', { type: 'button', class: 'btn btn-chico btn-peligro', text: 'Sí, eliminar', onclick: () => eliminar(p) }),
+        h('button', { type: 'button', class: 'btn btn-chico', text: 'Cancelar', onclick: () => { S.confirmar = null; pintarRincon(); } }));
+    } else {
+      acciones = h('div', { class: 'acciones' },
+        h('button', { type: 'button', class: 'btn btn-chico', text: 'Editar', onclick: () => abrirFormulario(p) }),
+        h('button', { type: 'button', class: 'btn btn-chico', text: pub ? 'Ocultar' : 'Publicar', onclick: () => mover(p) }),
+        h('button', { type: 'button', class: 'btn btn-chico btn-peligro', text: 'Eliminar', onclick: () => { S.confirmar = p.id; pintarRincon(); } }));
+    }
+    return h('li', { class: 'fila' }, info, acciones);
+  }
+
+  function pintarRincon() {
+    const c = $('#rincon-cont');
+    if (!c) return;
+    if (S.acceso === 'abierto' && S.editando && $('#form-poema')) return;
+    c.replaceChildren();
+    if (S.acceso === 'cargando') { c.append(aviso('Un momento…', true)); return; }
+    if (S.acceso === 'sin-config') {
+      c.append(h('div', { class: 'tarjeta-acceso' }, h('h2', { text: 'Falta la conexión' }),
+        h('p', { text: 'Todavía no se ha conectado la base de datos. Revisa el archivo config.js.' }),
+        h('button', { type: 'button', class: 'btn', text: 'Volver al catálogo', onclick: () => ir('biblioteca') })));
+      return;
+    }
+    if (S.acceso === 'entrar') {
+      c.append(h('form', { class: 'tarjeta-acceso', onsubmit: enviarAcceso, novalidate: true },
+        h('h2', { text: 'Mi rincón de escritura' }),
+        h('p', { text: 'Entra con tu correo y tu contraseña.' }),
+        h('div', { class: 'campo' }, h('label', { for: 'correo', text: 'Correo' }), h('input', { type: 'email', id: 'correo', autocomplete: 'username', inputmode: 'email' })),
+        h('div', { class: 'campo' }, h('label', { for: 'clave', text: 'Contraseña' }), h('input', { type: 'password', id: 'clave', autocomplete: 'current-password' })),
+        h('p', { class: 'msg', id: 'acceso-msg', role: 'alert' }),
+        h('button', { type: 'submit', class: 'btn btn-oro', id: 'btn-entrar', text: 'Entrar' })));
+      setTimeout(() => { const i = $('#correo'); if (i) i.focus(); }, 50);
+      return;
+    }
+    /* abierto */
+    if (S.editando) { c.append(construirFormulario()); poblarFormulario(); return; }
+    const lista = S.todos;
+    const pubs = lista.filter((p) => p.estado === 'publicado').length, ocu = lista.length - pubs;
+    c.append(h('div', { class: 'rincon-cab' },
+      h('div', {}, h('h2', { class: 'titulo-script', text: 'Mi rincón de escritura' }),
+        h('p', { class: 'resumen', text: `${pubs} ${plural(pubs)}${ocu ? ` · ${ocu} ${ocu === 1 ? 'oculto' : 'ocultos'}` : ''}` })),
+      h('div', { class: 'acciones' },
+        h('button', { type: 'button', class: 'btn btn-oro', html: IC.pluma + ' Nuevo poema', onclick: () => abrirFormulario(null) }),
+        h('button', { type: 'button', class: 'btn', text: 'Cambiar contraseña', onclick: () => { S.cambiandoClave = !S.cambiandoClave; pintarRincon(); } }),
+        h('button', { type: 'button', class: 'btn', html: IC.candadoChico + ' Cerrar rincón', onclick: cerrarRincon }))));
+    if (S.cambiandoClave) {
+      c.append(h('form', { class: 'panel', onsubmit: enviarCambioClave, novalidate: true },
+        h('h2', { text: 'Nueva contraseña' }),
+        h('div', { class: 'fila-2' },
+          h('div', { class: 'campo' }, h('label', { for: 'cc-1', text: 'Nueva contraseña' }), h('input', { type: 'password', id: 'cc-1', autocomplete: 'new-password' })),
+          h('div', { class: 'campo' }, h('label', { for: 'cc-2', text: 'Repítela' }), h('input', { type: 'password', id: 'cc-2', autocomplete: 'new-password' }))),
+        h('p', { class: 'msg', id: 'cc-msg', role: 'alert' }),
+        h('button', { type: 'submit', class: 'btn btn-oro', text: 'Guardar contraseña' })));
+    }
+    if (!S.cargadoTodos) { c.append(aviso('Cargando tus poemas…')); return; }
+    if (!lista.length) { c.append(aviso('Aún no has escrito ningún poema aquí. Pulsa «Nuevo poema» para empezar.', true)); return; }
+    c.append(h('ul', { class: 'filas' }, lista.map(filaPoema)));
+  }
+  function poblarFormulario() {
+    $('#f-contenido').value = S.form.datos.contenido || '';
+    actualizarPrev();
+  }
+
+  /* ---------- arranque ---------- */
+  function conectarBotones() {
+    $('#orn-portada').innerHTML = ORN;
+    $('#btn-rincon-portada').innerHTML = IC.candado;
+    $('#btn-a-portada').innerHTML = IC.atras + ' Portada';
+    $('#btn-rincon-lib').innerHTML = IC.pluma + ' Mi rincón de escritura';
+    $('#btn-lect-cat').innerHTML = IC.atras + ' Volver al catálogo';
+    $('#btn-rin-cat').innerHTML = IC.atras + ' Catálogo';
+    $('#btn-descubrir').addEventListener('click', () => ir('biblioteca'));
+    $('#btn-rincon-portada').addEventListener('click', () => ir('rincon'));
+    $('#btn-rincon-lib').addEventListener('click', () => ir('rincon'));
+    $('#btn-a-portada').addEventListener('click', () => ir('portada'));
+    $('#btn-lect-cat').addEventListener('click', () => ir('biblioteca'));
+    $('#btn-lect-portada').addEventListener('click', () => ir('portada'));
+    $('#btn-rin-cat').addEventListener('click', () => ir('biblioteca'));
+  }
+
+  conectarBotones();
+  iniciarFondo();
+  window.addEventListener('hashchange', () => aplicarRuta());
+  S.sb = crearCliente();
+  S.sinConfig = !S.sb;
+  aplicarRuta();
+  if (S.sb) cargarPublicados();
+})();
+</script>
+</body>
+</html>
